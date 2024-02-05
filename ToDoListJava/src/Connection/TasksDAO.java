@@ -8,8 +8,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import App.ToDoList;
-import App.Task;
+import View.Task;
+import View.ToDoList;
 
 public class TasksDAO {
     private Connection connection;
@@ -23,7 +23,7 @@ public class TasksDAO {
 
     // métodos
     public void criaTabela() {
-        String sql = "CREATE TABLE IF NOT EXISTS produtos_supermercado (IDPRODUTO VARCHAR(255) PRIMARY KEY, NOMEPRODUTO VARCHAR(255), QUANTIDADE VARCHAR(255), VALORUNITARIO VARCHAR(255))";
+        String sql = "CREATE TABLE IF NOT EXISTS tarefas_cliente (NOMETAREFA VARCHAR(255))";
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
             System.out.println("Tabela criada com sucesso.");
@@ -35,27 +35,24 @@ public class TasksDAO {
     }
 
     // Listar todos os valores cadastrados
-    public List<Estoque> listarTodos() {
+    public List<Task> listarTodos() {
         PreparedStatement stmt = null;
         // Declaração do objeto PreparedStatement para executar a consulta
         ResultSet rs = null;
         // Declaração do objeto ResultSet para armazenar os resultados da consulta
-        estoque = new ArrayList<>();
+        tarefas = new ArrayList<>();
         // Cria uma lista para armazenar os produtos recuperados do banco de dados
         try {
-            stmt = connection.prepareStatement("SELECT * FROM produtos_supermercado");
+            stmt = connection.prepareStatement("SELECT * FROM tarefas_cliente");
             // Prepara a consulta SQL para selecionar todos os registros da tabela
             rs = stmt.executeQuery();
             // Executa a consulta e armazena os resultados no ResultSet
             while (rs.next()) {
                 // Para cada registro no ResultSet, cria um objeto produtos com os valores do
                 // registro
-                Estoque produtos = new Estoque(
-                        rs.getString("idProduto"),
-                        rs.getString("nomeProduto"),
-                        rs.getString("quantidade"),
-                        rs.getString("valorUnitario"));
-                estoque.add(produtos); // Adiciona o objeto produtos à lista de estoque
+                Task tarefinhas = new Task(
+                        rs.getString("taskDescription"));
+                tarefas.add(tarefinhas); // Adiciona o objeto produtos à lista de estoque
             }
         } catch (SQLException ex) {
             System.out.println(ex); // Em caso de erro durante a consulta, imprime o erro
@@ -64,38 +61,17 @@ public class TasksDAO {
 
             // Fecha a conexão, o PreparedStatement e o ResultSet
         }
-        return estoque; // Retorna a lista de estoque recuperado do banco de dados
+        return tarefas; // Retorna a lista de estoque recuperado do banco de dados
     }
 
     // Cadastrar produto no banco
-    public void cadastrar(String idProduto, String nomeProduto, String quantidade, String valorUnitario) {
+    public void cadastrar(String taskDescription) {
         PreparedStatement stmt = null;
         // Define a instrução SQL parametrizada para cadastrar na tabela
-        String sql = "INSERT INTO produtos_supermercado (idProduto, nomeProduto, quantidade, valorUnitario) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO tarefas_cliente (taskDescription) VALUES (?)";
         try {
             stmt = connection.prepareStatement(sql);
-            stmt.setString(1, idProduto.trim());
-            stmt.setString(2, nomeProduto.trim().toUpperCase());
-            stmt.setString(3, quantidade.trim());
-            stmt.setString(4, valorUnitario.trim());
-            stmt.executeUpdate();
-            System.out.println("Dados inseridos com sucesso");
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao inserir dados no banco de dados.", e);
-        } finally {
-            ConnectionFactory.closeConnection(connection, stmt);
-        }
-    }
-
-    public void editar(String idProduto, String nomeProduto, String quantidade, String valorUnitario) {
-        PreparedStatement stmt = null;
-        String sql = "UPDATE produtos_supermercado SET nomeProduto = ?, quantidade = ?, valorUnitario = ? WHERE idProduto = ?";
-        try {
-            stmt = connection.prepareStatement(sql);
-            stmt.setString(4, idProduto.trim());
-            stmt.setString(1, nomeProduto.trim().toUpperCase());
-            stmt.setString(2, quantidade.trim());
-            stmt.setString(3, valorUnitario.trim());
+            stmt.setString(1, taskDescription.trim().toUpperCase());
             stmt.executeUpdate();
             System.out.println("Dados inseridos com sucesso");
         } catch (SQLException e) {
@@ -106,16 +82,13 @@ public class TasksDAO {
     }
 
     // Atualizar dados no banco
-    public void atualizar(String idProduto, String nomeProduto, String quantidade, String valorUnitario) {
+    public void atualizar(String taskDescription) {
         PreparedStatement stmt = null;
         // Define a instrução SQL parametrizada para atualizar dados pela placa
-        String sql = "UPDATE produtos_supermercado SET nomeProduto = ?, quantidade = ?, valorUnitario = ? WHERE idProduto = ?";
+        String sql = "UPDATE produtos_supermercado SET taskDescription = ?";
         try {
             stmt = connection.prepareStatement(sql);
-            stmt.setString(1, idProduto.trim());
-            stmt.setString(2, nomeProduto.trim().toUpperCase());
-            stmt.setString(3, quantidade.trim());
-            stmt.setString(4, valorUnitario.trim());
+            stmt.setString(1, taskDescription.trim().toUpperCase());
             stmt.executeUpdate();
             System.out.println("Dados atualizados com sucesso");
         } catch (SQLException e) {
@@ -129,7 +102,7 @@ public class TasksDAO {
     public void apagar(String idProduto) {
         PreparedStatement stmt = null;
         // Define a instrução SQL parametrizada para apagar dados pela id do produto
-        String sql = "DELETE FROM produtos_supermercado WHERE idProduto = ?";
+        String sql = "DELETE FROM taskDescription";
         try {
             stmt = connection.prepareStatement(sql);
             stmt.setString(1, idProduto);

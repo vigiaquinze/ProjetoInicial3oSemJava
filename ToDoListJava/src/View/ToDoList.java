@@ -1,27 +1,38 @@
-package App;
+package View;
+
 import java.util.*;
 import java.util.List;
 import java.util.logging.Handler;
+import javax.swing.table.*;
 
 import javax.swing.*;
 
 import org.w3c.dom.events.MouseEvent;
+
+import View.ToDoList.*;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+
+import java.awt.event.MouseEvent.*;
+
+import Control.TasksControl;
 
 public class ToDoList extends JFrame {
     private JPanel mainPanel;
     private JTextField taskInputField;
     private JButton addButton;
-    private JList<String> taskList;
-    private DefaultListModel<String> listModel;
+    private JTable taskTable;
+    private DefaultTableModel tableModel;
     private JButton deleteButton;
     private JButton markDoneButton;
     private JComboBox<String> filterComboBox;
     private JButton clearCompletedButton;
     private List<Task> tasks;
+    private int linhaSelecionada = -1;
 
     JFrame confirmationFrame;
     JPanel confirmationPanel;
@@ -32,14 +43,17 @@ public class ToDoList extends JFrame {
         // construtor
         super("To-Do List App");
 
+        tableModel = new DefaultTableModel();
+        tableModel.addColumn("Nome da Tarefa");
+
         // Inicializa o painel principal
         mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
         // Inicializa a lista de tasks e a lista de tasks concluídas
         tasks = new ArrayList<>();
-        listModel = new DefaultListModel<>();
-        taskList = new JList<>(listModel);
+        taskTable = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(taskTable);
 
         // Inicializa campos de entrada, botões e JComboBox
         taskInputField = new JTextField();
@@ -52,17 +66,10 @@ public class ToDoList extends JFrame {
         deleteButton = new JButton("Excluir");
         deleteButton.addActionListener(e -> {
             confirmationFrame.setVisible(true);
-            confirmationFrame.setBounds(600, 600, 200, 100);
+            confirmationFrame.setBounds(100, 300, 200, 100);
             confirmationFrame.setDefaultCloseOperation(2);
             confirmationPanel.setVisible(true);
         });
-        // adicionando o KeyListener, para utilizar o DEL para excluir tarefas também
-        Handler evt = new Handler();
-        taskList.addKeyListener(evt);
-        Handler2 dbl = new Handler2();
-        taskList.addMouseListener(dbl);
-        HandlerEnter enterAdd = new HandlerEnter();
-        taskInputField.addKeyListener(enterAdd);
 
         // Botão de concluir tarefa e o ActionListener dele
         markDoneButton = new JButton("Concluir");
@@ -97,7 +104,7 @@ public class ToDoList extends JFrame {
 
         // Adiciona os componentes ao painel principal
         mainPanel.add(inputPanel, BorderLayout.NORTH);
-        mainPanel.add(new JScrollPane(taskList), BorderLayout.CENTER);
+        mainPanel.add(new JScrollPane(taskTable), BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Adiciona o painel principal à janela
@@ -123,29 +130,18 @@ public class ToDoList extends JFrame {
         cancelButton.addActionListener(e -> {
             confirmationFrame.setVisible(false);
         });
-    }
 
-    public class Handler implements KeyListener {
+    TasksControl operacoes = new TasksControl(tasks, tableModel, taskTable);
 
-        @Override
-        public void keyTyped(KeyEvent evt) {
-        }
-
-        @Override
-        public void keyPressed(KeyEvent evt) {
-            if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
-                confirmationFrame.setVisible(true);
-                confirmationFrame.setBounds(600, 600, 200, 100);
-                confirmationFrame.setDefaultCloseOperation(2);
-                confirmationPanel.setVisible(true);
+        taskTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                linhaSelecionada = taskTable.rowAtPoint(evt.getPoint());
+                if (linhaSelecionada != -1) {
+                    inputIdProduto.setText((String) taskTable.getValueAt(linhaSelecionada, 0));
+                }
             }
-        }
-
-        @Override
-        public void keyReleased(KeyEvent evt) {
-        }
-
-    }
+        });
 
     public class HandlerEnter implements KeyListener {
 
@@ -206,7 +202,7 @@ public class ToDoList extends JFrame {
 
     private void deleteTask() {
         // Exclui a task selecionada da lista de tasks
-        int selectedIndex = taskList.getSelectedIndex();
+        int selectedIndex = taskTable.rowAtPoint();
         if (selectedIndex >= 0 && selectedIndex < tasks.size()) {
             tasks.remove(selectedIndex);
             updateTaskList();
@@ -215,7 +211,7 @@ public class ToDoList extends JFrame {
 
     private void markTaskDone() {
         // Marca a task selecionada como concluída
-        int selectedIndex = taskList.getSelectedIndex();
+        int selectedIndex = taskTable.getSelectedIndex();
         if (selectedIndex >= 0 && selectedIndex < tasks.size()) {
             Task task = tasks.get(selectedIndex);
             task.setDone(true);

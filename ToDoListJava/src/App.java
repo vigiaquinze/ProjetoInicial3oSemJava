@@ -1,7 +1,9 @@
-import App.ToDoList;
+import Connection.TasksDAO;
+import View.ToDoList;
 
 public class App {
     public static void main(String[] args) throws Exception {
+        new TasksDAO().criaTabela();
         new ToDoList();
     }
 }
